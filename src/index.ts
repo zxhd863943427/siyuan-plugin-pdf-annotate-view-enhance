@@ -6,6 +6,7 @@ import {
     IModel
 } from "siyuan";
 import "@/index.scss";
+import { getCurrentPage } from "./lib/utils";
 
 
 const STORAGE_NAME = "menu-config";
@@ -41,5 +42,7 @@ export default class PluginSample extends Plugin {
 
     private eventBusLog({detail}: any) {
         console.log(detail);
+        let page = getCurrentPage()
+        console.log(page)
     }
 }
