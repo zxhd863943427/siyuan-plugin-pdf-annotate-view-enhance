@@ -1,18 +1,18 @@
 {
-  "name": "plugin-sample-vite-svelte",
+  "name": "siyuan-plugin-pdf-annotate-view-enhance",
   "author": "frostime",
-  "url": "https://github.com/siyuan-note/plugin-sample-vite-svelte",
-  "version": "0.1.5",
+  "url": "https://github.com/zxhd863943427/siyuan-plugin-pdf-annotate-view-enhance",
+  "version": "0.0.1",
   "minAppVersion": "2.9.0",
   "backends": ["all"],
   "frontends": ["all"],
   "displayName": {
-    "en_US": "Plugin sample with vite and svelte",
-    "zh_CN": "插件样例 vite + svelte 版"
+    "en_US": "PDF",
+    "zh_CN": "PDF高级标注视图"
   },
   "description": {
-    "en_US": "SiYuan plugin sample with vite and svelte",
-    "zh_CN": "使用 vite 和 svelte 开发的思源插件样例"
+    "en_US": "Possibly the strongest pdf annotation viewing view among note-taking software",
+    "zh_CN": "可能是笔记软件中最强的pdf标注查看视图"
   },
   "readme": {
     "en_US": "README.md",
@@ -20,7 +20,7 @@
   },
   "funding": {
     "custom": [
-      "https://afdian.net/a/frostime"
+      "https://afdian.net/a/zxhd86"
     ]
   }
 }
