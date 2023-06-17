@@ -7,11 +7,14 @@ import {
 } from "siyuan";
 import "@/index.scss";
 import { getCurrentPage } from "./lib/utils";
+import { getFileAnnotation } from "./api";
 
 
 const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
 const DOCK_TYPE = "dock_tab";
+let currentPDF
+let AnnotationData = {}
 
 export default class PluginSample extends Plugin {
 
@@ -42,7 +45,12 @@ export default class PluginSample extends Plugin {
 
     private eventBusLog({detail}: any) {
         console.log(detail);
-        let page = getCurrentPage()
-        console.log(page)
+        let page = getCurrentPage() as HTMLElement
+        currentPDF = page.innerText
+        console.log(page.innerText)
+        getFileAnnotation(currentPDF).then(data=>{
+            AnnotationData[currentPDF] = JSON.parse(data.data)
+            console.log(AnnotationData[currentPDF])
+        })
     }
 }
