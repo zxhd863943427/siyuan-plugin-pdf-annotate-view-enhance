@@ -10,6 +10,7 @@ import { getCurrentPage } from "./lib/utils";
 import { getFileAnnotation } from "./api";
 import { getAnnotationCoordinates } from "./lib/annotation";
 import { initPagerenderedEvent, initPageScrollEvent } from "./lib/pdfEvent";
+import { getPageRefIDs } from "./lib/refBlock";
 
 
 const STORAGE_NAME = "menu-config";
@@ -54,6 +55,7 @@ export default class PluginSample extends Plugin {
         currentPDF = page.innerText
         currentPDFID = page.getAttribute("data-id")
         console.log(currentPDFID)
+        initPagerenderedEvent(currentPDFID,eventBusLog)
         getFileAnnotation(currentPDF).then(data=>{
             let Annotation = JSON.parse(data.data)
             console.log(Annotation)
@@ -88,4 +90,6 @@ function addPageDataToDict(dict:any,id:string,pageData:any,AnnotationData:any){
 
 function eventBusLog(ev:any){
     console.log(ev)
+    let pageRef = getPageRefIDs(currentPDF,AnnotationData,ev.pageNumber-1)
+    pageRef.then(data=>console.log(data))
 }
