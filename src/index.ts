@@ -6,7 +6,7 @@ import {
     IModel
 } from "siyuan";
 import "@/index.scss";
-import { getCurrentPage } from "./lib/utils";
+import { getCurrentPage, setAddFloatLayer } from "./lib/utils";
 import { getFileAnnotation } from "./api";
 import { getAnnotationCoordinates } from "./lib/annotation";
 import { initPagerenderedEvent, initPageScrollEvent } from "./lib/pdfEvent";
@@ -28,6 +28,7 @@ export default class PluginSample extends Plugin {
     async onload() {
         window.getAnnotationCoordinates = getAnnotationCoordinates
         this.data[STORAGE_NAME] = {readonlyText: "Readonly"};
+        setAddFloatLayer(this.addFloatLayer)
 
         console.log("loading plugin-sample", this.i18n);
 

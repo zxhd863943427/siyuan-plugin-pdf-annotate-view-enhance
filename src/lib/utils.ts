@@ -23,3 +23,8 @@ export function getCurrentPage() {
     }
     throw new Error("未能获取到页面焦点！");
 }
+
+export let addFloatLayer:Function;
+export function setAddFloatLayer(call:Function){
+    addFloatLayer = call;
+}
