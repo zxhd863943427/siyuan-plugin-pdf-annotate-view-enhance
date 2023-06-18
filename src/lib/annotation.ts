@@ -35,6 +35,6 @@ export function getAnnotationCoordinates(id: string) {
         return null
     }
     let firstAnnotation = annotation.querySelector(":scope > div:nth-child(1)")
-    let coordinates = getCoordinates(firstAnnotation as HTMLElement)
+    let coordinates = ()=>getCoordinates(firstAnnotation as HTMLElement)
     return coordinates
 }
