@@ -7,7 +7,7 @@ let getRefIDs = async (id) => (await fetchSyncPost("api/block/getRefIDsByFileAnn
 // 获取当前页面的块引用
 export async function getPageRefIDs(pdf:string,AnnotationData:any, pageNumber:number){
     let pageRefIDs = []
-    console.log(AnnotationData)
+    // console.log(AnnotationData)
     let PageAnnotationData = AnnotationData[pdf][pageNumber]
     if (!PageAnnotationData){
         return pageRefIDs
