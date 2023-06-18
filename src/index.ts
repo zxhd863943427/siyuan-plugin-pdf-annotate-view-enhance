@@ -8,12 +8,14 @@ import {
 import "@/index.scss";
 import { getCurrentPage } from "./lib/utils";
 import { getFileAnnotation } from "./api";
+import { getAnnotationCoordinates } from "./lib/annotation";
 
 
 const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
 const DOCK_TYPE = "dock_tab";
 let currentPDF
+let currentPDFID
 let AnnotationData = {}
 
 export default class PluginSample extends Plugin {
@@ -22,6 +24,7 @@ export default class PluginSample extends Plugin {
     private isMobile: boolean;
 
     async onload() {
+        window.getAnnotationCoordinates = getAnnotationCoordinates
         this.data[STORAGE_NAME] = {readonlyText: "Readonly"};
 
         console.log("loading plugin-sample", this.i18n);
@@ -46,11 +49,13 @@ export default class PluginSample extends Plugin {
     private eventBusLog({detail}: any) {
         console.log(detail);
         let page = getCurrentPage() as HTMLElement
+        // console.log(page)
         currentPDF = page.innerText
-        console.log(page.innerText)
+        currentPDFID = page.getAttribute("data-id")
+        console.log(currentPDFID)
         getFileAnnotation(currentPDF).then(data=>{
             AnnotationData[currentPDF] = JSON.parse(data.data)
-            console.log(AnnotationData[currentPDF])
+            // console.log(AnnotationData[currentPDF])
             console.log(getPageAnnotation(AnnotationData[currentPDF]))
         })
     }
