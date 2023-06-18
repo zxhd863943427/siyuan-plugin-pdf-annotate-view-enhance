@@ -9,6 +9,7 @@ import "@/index.scss";
 import { getCurrentPage } from "./lib/utils";
 import { getFileAnnotation } from "./api";
 import { getAnnotationCoordinates } from "./lib/annotation";
+import { initPagerenderedEvent, initPageScrollEvent } from "./lib/pdfEvent";
 
 
 const STORAGE_NAME = "menu-config";
@@ -31,7 +32,7 @@ export default class PluginSample extends Plugin {
 
         const frontEnd = getFrontend();
         this.isMobile = frontEnd === "mobile" || frontEnd === "browser-mobile";
-        this.eventBus.on("click-pdf", this.eventBusLog)
+        this.eventBus.on("click-pdf", this.mainPdfEvent)
     }
 
     onLayoutReady() {
@@ -46,7 +47,7 @@ export default class PluginSample extends Plugin {
     }
 
 
-    private eventBusLog({detail}: any) {
+    private mainPdfEvent({detail}: any) {
         console.log(detail);
         let page = getCurrentPage() as HTMLElement
         // console.log(page)
@@ -82,4 +83,9 @@ function addPageDataToDict(dict:any,id:string,pageData:any,AnnotationData:any){
         defId:id,
         positions:pageData.positions,
         Data:AnnotationData},)
+}
+
+
+function eventBusLog(ev:any){
+    console.log(ev)
 }

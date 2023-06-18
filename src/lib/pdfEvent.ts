@@ -21,3 +21,20 @@ export function getModelsById(id:string){
     }
     return models;
 }
+
+export function getPdfViewer(id:string){
+    let model = getModelsById(id)[0]
+    let pdfViewer = model.pdfObject.pdfViewer
+    return pdfViewer
+}
+
+export function initPagerenderedEvent(id:string,callback:Function){
+    let pdfViewer = getPdfViewer(id)
+    pdfViewer.eventBus.on("pagerendered",callback)
+}
+
+export function initPageScrollEvent(id:string,callback:Function){
+    let model = getModelsById(id)[0]
+    let viewerContainer = model.element.querySelector("#viewerContainer")
+    viewerContainer.addEventListener('scroll',callback)
+}
