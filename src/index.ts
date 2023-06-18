@@ -9,7 +9,7 @@ import "@/index.scss";
 import { getCurrentPage, setAddFloatLayer,addFloatLayer } from "./lib/utils";
 import { getFileAnnotation } from "./api";
 import { getAnnotationCoordinates } from "./lib/annotation";
-import { initPagerenderedEvent, initPageScrollEvent } from "./lib/pdfEvent";
+import { initPagerenderedEvent, initPageScrollEvent, getCachedPageViews } from "./lib/pdfEvent";
 import { getPageRefIDs } from "./lib/refBlock";
 import { openRefFactory } from "./lib/refBlock";
 
@@ -62,12 +62,10 @@ export default class PluginSample extends Plugin {
         currentPDFID = page.getAttribute("data-id")
         PDFIdToName[currentPDFID] = currentPDF
         console.log(currentPDFID)
-        initPagerenderedEvent(currentPDFID,eventBusLog)
-        initPagerenderedEvent(currentPDFID,openRefFactory(
-                                                currentPDFID, 
-                                                RefData,
-                                                PDFIdToName, 
-                                                AnnotationData))
+        window.getCachedPageViews = getCachedPageViews
+        let CachedPage = getCachedPageViews(currentPDFID)
+        console.log(CachedPage)
+        initPdfEvent()
         getFileAnnotation(currentPDF).then(data=>{
             let Annotation = JSON.parse(data.data)
             console.log(Annotation)
@@ -104,4 +102,15 @@ function eventBusLog(ev:any){
     console.log(ev)
     let pageRef = getPageRefIDs(currentPDF,AnnotationData,ev.pageNumber-1)
     pageRef.then(data=>console.log(data))
+}
+
+function initPdfEvent(){
+    if (AnnotationData[currentPDF])
+        return
+    initPagerenderedEvent(currentPDFID,eventBusLog)
+    initPagerenderedEvent(currentPDFID,openRefFactory(
+                                            currentPDFID, 
+                                            RefData,
+                                            PDFIdToName, 
+                                            AnnotationData))
 }
