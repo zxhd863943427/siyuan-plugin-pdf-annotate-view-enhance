@@ -38,3 +38,22 @@ export function initPageScrollEvent(id:string,callback:Function){
     let viewerContainer = model.element.querySelector("#viewerContainer")
     viewerContainer.addEventListener('scroll',callback)
 }
+
+export function getCachedPageViews(id:string){
+    let model = getModelsById(id)[0]
+    let pdfViewer = model.pdfObject.pdfViewer
+    
+    let currentPageNumber = model.pdfObject.page
+    let pageCount = model.pdfObject.pagesCount
+    
+    let CachedPage = []
+    // let isPageCached = pdfViewer.isPageCached
+    
+    let minPage = Math.max(1,currentPageNumber - 10)
+    let maxPage = Math.min(pageCount, currentPageNumber + 10)
+    for (let i = minPage; i <= maxPage; i++){
+        if (pdfViewer.isPageCached(i))
+            CachedPage.push(i)
+    }
+    return new Set(CachedPage)
+}
