@@ -40,6 +40,7 @@ export function openRefFactory(PdfID:string,RefDict:any,pdfIdDict:any,Annotation
                 })
                 let floatLayer = getArrayLast(window.siyuan.blockPanels)
                 setRefBlockPin(floatLayer)
+                setRefBlockAnnotation(floatLayer,PdfID)
                 pageRefData.push({
                     id:item.defId,
                     getAnnotationCoord:getAnnotationCoordinates(item.defId),
@@ -65,4 +66,7 @@ function updateRefDict(RefDict:any,pdfID:string,pageData:any, pageNumber:number)
 
 function setRefBlockPin(floatLayer){
     floatLayer.element.setAttribute("data-pin","true")
+}
+function setRefBlockAnnotation(floatLayer,pdfID:string){
+    floatLayer.element.setAttribute("annotation",pdfID)
 }
