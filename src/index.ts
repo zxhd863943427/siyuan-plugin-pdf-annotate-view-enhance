@@ -6,11 +6,12 @@ import {
     IModel
 } from "siyuan";
 import "@/index.scss";
-import { getCurrentPage, setAddFloatLayer } from "./lib/utils";
+import { getCurrentPage, setAddFloatLayer,addFloatLayer } from "./lib/utils";
 import { getFileAnnotation } from "./api";
 import { getAnnotationCoordinates } from "./lib/annotation";
 import { initPagerenderedEvent, initPageScrollEvent } from "./lib/pdfEvent";
 import { getPageRefIDs } from "./lib/refBlock";
+import { openRefFactory } from "./lib/refBlock";
 
 
 const STORAGE_NAME = "menu-config";
@@ -18,7 +19,9 @@ const TAB_TYPE = "custom_tab";
 const DOCK_TYPE = "dock_tab";
 let currentPDF
 let currentPDFID
+let PDFIdToName = {}
 let AnnotationData = {}
+let RefData = {}
 
 export default class PluginSample extends Plugin {
 
@@ -27,6 +30,8 @@ export default class PluginSample extends Plugin {
 
     async onload() {
         window.getAnnotationCoordinates = getAnnotationCoordinates
+        window.refData = RefData
+
         this.data[STORAGE_NAME] = {readonlyText: "Readonly"};
         setAddFloatLayer(this.addFloatLayer)
 
@@ -55,8 +60,14 @@ export default class PluginSample extends Plugin {
         // console.log(page)
         currentPDF = page.innerText
         currentPDFID = page.getAttribute("data-id")
+        PDFIdToName[currentPDFID] = currentPDF
         console.log(currentPDFID)
         initPagerenderedEvent(currentPDFID,eventBusLog)
+        initPagerenderedEvent(currentPDFID,openRefFactory(
+                                                currentPDFID, 
+                                                RefData,
+                                                PDFIdToName, 
+                                                AnnotationData))
         getFileAnnotation(currentPDF).then(data=>{
             let Annotation = JSON.parse(data.data)
             console.log(Annotation)
