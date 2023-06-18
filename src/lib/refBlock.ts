@@ -70,3 +70,16 @@ function setRefBlockPin(floatLayer){
 function setRefBlockAnnotation(floatLayer,pdfID:string){
     floatLayer.element.setAttribute("annotation",pdfID)
 }
+
+export function updateRefBlockCoord(RefData:any, pdfId:string){
+    let pdfRefData = RefData[pdfId]
+    let keys = Object.keys(pdfRefData)
+    for (let pageNumber of keys){
+        let pageRefData = pdfRefData[pageNumber]
+        for (let item of pageRefData){
+            let floatLayerElement = item.floatLayer.element
+            let clentY = item.getAnnotationCoord()['y']
+            floatLayerElement.style.top = `${clentY}px`
+        }
+    }
+}
