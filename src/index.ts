@@ -54,9 +54,10 @@ export default class PluginSample extends Plugin {
         currentPDFID = page.getAttribute("data-id")
         console.log(currentPDFID)
         getFileAnnotation(currentPDF).then(data=>{
-            AnnotationData[currentPDF] = JSON.parse(data.data)
-            // console.log(AnnotationData[currentPDF])
-            console.log(getPageAnnotation(AnnotationData[currentPDF]))
+            let Annotation = JSON.parse(data.data)
+            console.log(Annotation)
+            AnnotationData[currentPDF] = getPageAnnotation(Annotation)
+            console.log(AnnotationData[currentPDF])
         })
     }
 }
@@ -67,17 +68,18 @@ function getPageAnnotation(AnnotationData:any){
     let keys = Object.keys(AnnotationData)
     for (let id of keys){
         let pageData = AnnotationData[id].pages[0]
-        addPageDataToDict(PageAnnotation,id,pageData)
+        addPageDataToDict(PageAnnotation,id,pageData,AnnotationData[id])
     }
     return PageAnnotation
 }
 
-function addPageDataToDict(dict:any,id:string,pageData:any){
+function addPageDataToDict(dict:any,id:string,pageData:any,AnnotationData:any){
     let pageIndex = pageData.index
     if (dict[pageIndex] === undefined){
         dict[pageIndex] = []
     }
     dict[pageIndex].push({
-        refId:id,
-        positions:pageData.positions})
+        defId:id,
+        positions:pageData.positions,
+        Data:AnnotationData},)
 }
