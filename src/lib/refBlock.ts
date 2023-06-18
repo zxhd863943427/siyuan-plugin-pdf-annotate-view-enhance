@@ -43,7 +43,7 @@ export function openRefFactory(PdfID:string,RefDict:any,pdfIdDict:any,Annotation
                 pageRefData.push({
                     id:item.defId,
                     getAnnotationCoord:getAnnotationCoordinates(item.defId),
-                    floatLayer:getArrayLast(floatLayer)
+                    floatLayer:floatLayer
                 })
             }
         })
