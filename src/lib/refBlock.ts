@@ -36,7 +36,7 @@ export function openRefFactory(PdfID:string,RefDict:any,pdfIdDict:any,Annotation
                     ids: item.refIDs,
                     defIds: [item.defId],
                     x: window.innerWidth - 768 - 120,
-                    y: window.innerHeight + 100
+                    y: 2 * window.outerHeight + 100
                 })
                 let floatLayer = getArrayLast(window.siyuan.blockPanels)
                 setRefBlockPin(floatLayer)
@@ -81,6 +81,9 @@ export function updateRefBlockCoord(RefData:any, pdfId:string){
         for (let item of pageRefData){
             let floatLayerElement = item.floatLayer.element
             let clentY = item.getAnnotationCoord()['y']
+            let width = item.getAnnotationCoord()['width']
+            if (width === 0)
+                return
             floatLayerElement.style.top = `${clentY}px`
         }
     }
