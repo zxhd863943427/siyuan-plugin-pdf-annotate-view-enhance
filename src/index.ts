@@ -11,7 +11,7 @@ import { getFileAnnotation } from "./api";
 import { getAnnotationCoordinates } from "./lib/annotation";
 import { initPagerenderedEvent, initPageScrollEvent, getCachedPageViews } from "./lib/pdfEvent";
 import { getPageRefIDs } from "./lib/refBlock";
-import { openRefFactory, updateRefBlockCoord } from "./lib/refBlock";
+import { updateRefFloatBufferFactory, updateRefBlockCoord } from "./lib/refBlock";
 
 
 const STORAGE_NAME = "menu-config";
@@ -112,7 +112,7 @@ function initPdfEvent(){
         return
     hasOpenPdf.add(currentPDFID)
     initPagerenderedEvent(currentPDFID,eventBusLog)
-    initPagerenderedEvent(currentPDFID,openRefFactory(
+    initPagerenderedEvent(currentPDFID,updateRefFloatBufferFactory(
                                             currentPDFID, 
                                             RefData,
                                             PDFIdToName, 

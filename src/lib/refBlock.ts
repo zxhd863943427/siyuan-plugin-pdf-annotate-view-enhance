@@ -1,6 +1,7 @@
 import { fetchSyncPost } from "siyuan"
 import { addFloatLayer } from "./utils"
 import { getAnnotationCoordinates } from "./annotation"
+import { getCachedPageViews } from "./pdfEvent"
 // 获取标注的块引
 let getRefIDs = async (id) => (await fetchSyncPost("api/block/getRefIDsByFileAnnotationID",{id: id})).data.refIDs
 
@@ -22,35 +23,45 @@ export async function getPageRefIDs(pdf:string,AnnotationData:any, pageNumber:nu
     return pageRefIDs
 }
 
-// 返回一个打开标注并更新字典的函数
-export function openRefFactory(PdfID:string,RefDict:any,pdfIdDict:any,AnnotationData:any){
-    let pdfName = pdfIdDict[PdfID]
+// 更新当前页面的标注浮窗群
+export function updateRefFloatBufferFactory(PdfID:string,RefDict:any,pdfIdDict:any,AnnotationData:any){
+    // let pdfName = pdfIdDict[PdfID]
     return (ev:any)=>{
-        let pageRefData = []
-        getPageRefIDs(pdfName, AnnotationData, ev.pageNumber-1)
-        .then(pageRefIDs=>{
-            for (let item of pageRefIDs){
-                if (item.refIDs.length === 0) continue;
-
-                addFloatLayer({
-                    ids: item.refIDs,
-                    defIds: [item.defId],
-                    x: window.innerWidth - 768 - 120,
-                    y: 2 * window.outerHeight + 100
-                })
-                let floatLayer = getArrayLast(window.siyuan.blockPanels)
-                setRefBlockPin(floatLayer)
-                setRefBlockAnnotation(floatLayer,PdfID)
-                pageRefData.push({
-                    id:item.defId,
-                    getAnnotationCoord:getAnnotationCoordinates(item.defId),
-                    floatLayer:floatLayer
-                })
-            }
-        })
-        updateRefDict(RefDict, PdfID, pageRefData, ev.pageNumber)
+        let CachedPage = getCachedPageViews(PdfID)
+        let pageNumber = ev.pageNumber
+        // if (!CachedPage)
+        console.log(RefDict)
+        openPageRefFloatAndUpdateRefDict(PdfID, RefDict, pdfIdDict, AnnotationData, pageNumber)
     }
 }
+//打开对应页面的浮窗，并把打开的页面浮窗写入RefDict
+function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pdfIdDict:any, AnnotationData:any, pageNumber:number){
+    let pdfName = pdfIdDict[PdfID]
+    let pageRefData = []
+    getPageRefIDs(pdfName, AnnotationData, pageNumber-1)
+    .then(pageRefIDs=>{
+        for (let item of pageRefIDs){
+            if (item.refIDs.length === 0) continue;
+
+            addFloatLayer({
+                ids: item.refIDs,
+                defIds: [item.defId],
+                x: window.innerWidth - 768 - 120,
+                y: 2 * window.outerHeight + 100
+            })
+            let floatLayer = getArrayLast(window.siyuan.blockPanels)
+            setRefBlockPin(floatLayer)
+            setRefBlockAnnotation(floatLayer,PdfID)
+            pageRefData.push({
+                id:item.defId,
+                getAnnotationCoord:getAnnotationCoordinates(item.defId),
+                floatLayer:floatLayer
+            })
+        }
+    })
+    updateRefDict(RefDict, PdfID, pageRefData, pageNumber)
+}
+
 
 function getArrayLast(array:Array<any>){
     let length = array.length
