@@ -30,7 +30,7 @@ export function getPdfViewer(id:string){
 
 export function initPagerenderedEvent(id:string,callback:Function){
     let pdfViewer = getPdfViewer(id)
-    pdfViewer.eventBus.on("pagerendered",callback)
+    pdfViewer.eventBus.on("textlayerrendered",callback)
 }
 
 export function initPageScrollEvent(id:string,callback:Function){
