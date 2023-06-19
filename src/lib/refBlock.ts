@@ -34,7 +34,14 @@ export function updateRefFloatBufferFactory(PdfID:string,RefDict:any,pdfIdDict:a
         let currentPageNoOpen = renderedPageRef.indexOf(String(pageNumber)) === -1
         if (currentPageNoOpen)
             openPageRefFloatAndUpdateRefDict(PdfID, RefDict, pdfIdDict, AnnotationData, pageNumber)
-        console.log(RefDict)
+        let cleanPage = diff(renderedPageRef.map(a=>parseInt(a)),CachedPage)
+        console.log("已渲染的页面：",renderedPageRef,
+        "\n已存在的页面：",CachedPage,
+        "\n将清理页面：",cleanPage)
+        for (let cleanPageNumber of cleanPage){
+            closePageRefFloatAndUpdateRefDict(PdfID, RefDict, cleanPageNumber)
+            console.log("clean page:",cleanPageNumber,"\n now refDict :",RefDict[PdfID])
+        }
     }
 }
 //打开对应页面的浮窗，并把打开的页面浮窗写入RefDict
@@ -94,11 +101,35 @@ export function updateRefBlockCoord(RefData:any, pdfId:string){
         let pageRefData = pdfRefData[pageNumber]
         for (let item of pageRefData){
             let floatLayerElement = item.floatLayer.element
-            let clentY = item.getAnnotationCoord()['y']
-            let width = item.getAnnotationCoord()['width']
+            let rectDom = item.getAnnotationCoord()
+            if (!floatLayerElement || !rectDom){
+                closePageRefFloat(pageRefData, item.floatLayer)
+            }
+            let clentY = rectDom['y']
+            let width = rectDom['width']
             if (width === 0)
                 return
             floatLayerElement.style.top = `${clentY}px`
         }
     }
+}
+
+let diff = (a:Array<number>|Set<number>,b:Array<number>|Set<number>)=>{
+    let c = new Set([...a])
+    let d = new Set([...b])
+    return new Set([...c].filter(x => !d.has(x)))}
+
+function closePageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pageNumber:number){
+    let cleanPageRefData = RefDict[PdfID][pageNumber]
+    for (let refFloat of cleanPageRefData){
+        closePageRefFloat(cleanPageRefData,refFloat)
+    }
+    delete  RefDict[PdfID][pageNumber]
+}
+
+function closePageRefFloat(cleanPageRefData:Array<any>,refFloat:any){
+    let deleteIndex = cleanPageRefData.indexOf(refFloat)
+    refFloat.floatLayer.destroy()
+    cleanPageRefData.splice(deleteIndex,1)
+    return cleanPageRefData
 }
