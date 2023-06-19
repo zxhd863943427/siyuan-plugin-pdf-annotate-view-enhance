@@ -11,7 +11,7 @@ import { getFileAnnotation } from "./api";
 import { getAnnotationCoordinates } from "./lib/annotation";
 import { initPagerenderedEvent, initPageScrollEvent, getCachedPageViews } from "./lib/pdfEvent";
 import { getPageRefIDs } from "./lib/refBlock";
-import { openRefFactory } from "./lib/refBlock";
+import { openRefFactory, updateRefBlockCoord } from "./lib/refBlock";
 
 
 const STORAGE_NAME = "menu-config";
@@ -22,6 +22,7 @@ let currentPDFID
 let PDFIdToName = {}
 let AnnotationData = {}
 let RefData = {}
+let hasOpenPdf = new Set([])
 
 export default class PluginSample extends Plugin {
 
@@ -31,6 +32,7 @@ export default class PluginSample extends Plugin {
     async onload() {
         window.getAnnotationCoordinates = getAnnotationCoordinates
         window.refData = RefData
+        window.updateRefBlockCoord = updateRefBlockCoord
 
         this.data[STORAGE_NAME] = {readonlyText: "Readonly"};
         setAddFloatLayer(this.addFloatLayer)
@@ -105,12 +107,14 @@ function eventBusLog(ev:any){
 }
 
 function initPdfEvent(){
-    if (AnnotationData[currentPDF])
+    if (hasOpenPdf.has(currentPDFID))
         return
+    hasOpenPdf.add(currentPDFID)
     initPagerenderedEvent(currentPDFID,eventBusLog)
     initPagerenderedEvent(currentPDFID,openRefFactory(
                                             currentPDFID, 
                                             RefData,
                                             PDFIdToName, 
                                             AnnotationData))
+    initPageScrollEvent(currentPDFID,()=>updateRefBlockCoord(RefData,currentPDFID))
 }
