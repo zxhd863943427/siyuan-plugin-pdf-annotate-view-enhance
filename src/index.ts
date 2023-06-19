@@ -117,5 +117,19 @@ function initPdfEvent(){
                                             RefData,
                                             PDFIdToName, 
                                             AnnotationData))
-    initPageScrollEvent(currentPDFID,()=>updateRefBlockCoord(RefData,currentPDFID))
+    initPageScrollEvent(currentPDFID, throttle(()=>updateRefBlockCoord(RefData,currentPDFID),100))
+}
+
+function throttle(func:Function, wait:number) {
+    let timeout;
+    return function() {
+      let context = this;
+      let args = arguments;
+      if (!timeout) {
+        timeout = setTimeout(() => {
+          timeout = null;
+          func.apply(context, args)
+        }, wait)
+      }
+    }
 }
