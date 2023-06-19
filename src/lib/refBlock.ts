@@ -29,9 +29,12 @@ export function updateRefFloatBufferFactory(PdfID:string,RefDict:any,pdfIdDict:a
     return (ev:any)=>{
         let CachedPage = getCachedPageViews(PdfID)
         let pageNumber = ev.pageNumber
-        // if (!CachedPage)
+        // 获取已渲染的页面列表，如果 RefDict[PdfID] 不存在则说明未开始打开浮窗，返回空列表
+        let renderedPageRef = RefDict[PdfID] ? Object.keys(RefDict[PdfID]) : []
+        let currentPageNoOpen = renderedPageRef.indexOf(String(pageNumber)) === -1
+        if (currentPageNoOpen)
+            openPageRefFloatAndUpdateRefDict(PdfID, RefDict, pdfIdDict, AnnotationData, pageNumber)
         console.log(RefDict)
-        openPageRefFloatAndUpdateRefDict(PdfID, RefDict, pdfIdDict, AnnotationData, pageNumber)
     }
 }
 //打开对应页面的浮窗，并把打开的页面浮窗写入RefDict
@@ -46,7 +49,7 @@ function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pdfIdDict:a
             addFloatLayer({
                 ids: item.refIDs,
                 defIds: [item.defId],
-                x: window.innerWidth - 768 - 120,
+                x: window.innerWidth,
                 y: 2 * window.outerHeight + 100
             })
             let floatLayer = getArrayLast(window.siyuan.blockPanels)
@@ -54,7 +57,7 @@ function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pdfIdDict:a
             setRefBlockAnnotation(floatLayer,PdfID)
             pageRefData.push({
                 id:item.defId,
-                getAnnotationCoord:getAnnotationCoordinates(item.defId),
+                getAnnotationCoord:getAnnotationCoordinates(item.defId,PdfID),
                 floatLayer:floatLayer
             })
         }
