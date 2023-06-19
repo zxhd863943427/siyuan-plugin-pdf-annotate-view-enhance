@@ -67,12 +67,13 @@ export default class PluginSample extends Plugin {
         window.getCachedPageViews = getCachedPageViews
         let CachedPage = getCachedPageViews(currentPDFID)
         console.log(CachedPage)
-        initPdfEvent()
+        
         getFileAnnotation(currentPDF).then(data=>{
             let Annotation = JSON.parse(data.data)
             console.log(Annotation)
             AnnotationData[currentPDF] = getPageAnnotation(Annotation)
             console.log(AnnotationData[currentPDF])
+            initPdfEvent()
         })
     }
 }
