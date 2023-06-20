@@ -130,6 +130,7 @@ function initFloat(item: oneAnnotationData, PdfID: string) {
     initRefBlockCoord(refBlockData, PdfID);
     setRefBlockPin(floatLayer);
     setRefBlockAnnotation(floatLayer, PdfID);
+    setRefBlockScrollTopAndTop(floatLayer, PdfID)
     return refBlockData;
 }
 
@@ -176,25 +177,40 @@ function setRefBlockAnnotation(floatLayer:floatLayer,pdfID:string){
     floatLayer.element.setAttribute("annotation",pdfID)
 }
 
+function setRefBlockScrollTopAndTop(floatLayer:floatLayer,pdfID:string){
+    let pdfViewerContainer = getPdfViewer(pdfID)
+    let scrollTop = pdfViewerContainer.scrollTop
+    let {top:elementTop} = floatLayer.element.getBoundingClientRect()
+    floatLayer.element.setAttribute("scroll-top",scrollTop)
+    floatLayer.element.setAttribute("init-top",String(elementTop))
+}
+
 export function updateRefBlockCoord(RefData:AllRefBlock, pdfId:string){
     let pdfRefData = RefData[pdfId]
     if (!pdfRefData)
         return
     let keys = Object.keys(pdfRefData)
+    let pdfViewerContainer = getPdfViewer(pdfId)
+    let newScrollTop = pdfViewerContainer.scrollTop
     for (let pageNumber of keys){
         let pageRefData = pdfRefData[pageNumber]
         for (let item of pageRefData){
             let floatLayerElement = item.floatLayer.element
-            let rectDom = item.getAnnotationCoord()
-            if (!floatLayerElement || !rectDom){
-                closeOneRefFloat(pageRefData, item)
-                return;
-            }
-            let clentY = rectDom['y']
-            let width = rectDom['width']
-            if (width === 0)
-                return
-            floatLayerElement.style.top = `${clentY}px`
+            // let rectDom = item.getAnnotationCoord()
+            // if (!floatLayerElement || !rectDom){
+            //     closeOneRefFloat(pageRefData, item)
+            //     return;
+            // }
+            // let clentY = rectDom['y']
+            // let width = rectDom['width']
+            // if (width === 0)
+            //     return
+            // floatLayerElement.style.top = `${clentY}px`
+            
+            let scrollTop = parseFloat(floatLayerElement.getAttribute("scroll-top"))
+            let initTop = parseFloat(floatLayerElement.getAttribute("init-top"))
+            let newTop = initTop + (scrollTop - newScrollTop)
+            floatLayerElement.style.top = `${newTop}px`
         }
     }
 }
@@ -246,4 +262,15 @@ function isRefUpdate(pageRefData:pageRefBlock, refItem:oneAnnotationData){
     }
     let searchRefIds = searchRefData[0]
     return !setEqual(searchRefIds.refIDs,refItem.refIDs)
+}
+
+const pdfViewerContainerDict = {} as Map<string,HTMLElement>
+function getPdfViewer(id:string){
+    let pdfViewerContainer
+    if (!pdfViewerContainerDict[id]){
+        pdfViewerContainer = document.querySelector(`[data-id="${id}"] #viewerContainer`)
+        pdfViewerContainerDict[id] = pdfViewerContainer
+    }
+    pdfViewerContainer = pdfViewerContainerDict[id]
+    return pdfViewerContainer
 }
