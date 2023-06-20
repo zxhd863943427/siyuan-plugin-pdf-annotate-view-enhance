@@ -1,13 +1,14 @@
 import { fetchSyncPost } from "siyuan"
 import { addFloatLayer } from "./utils"
 import { getAnnotationCoordinates } from "./annotation"
-import { getCachedPageViews } from "./pdfEvent"
+import { getCachedPageViews, getModelsById } from "./pdfEvent"
+declare const index:any;
 // 获取标注的块引
 let getRefIDs = async (id) => (await fetchSyncPost("api/block/getRefIDsByFileAnnotationID",{id: id})).data.refIDs
 
 // 获取当前页面的块引用
-export async function getPageRefIDs(pdf:string,AnnotationData:any, pageNumber:number){
-    let pageRefIDs = []
+export async function getPageRefIDs(pdf:string,AnnotationData:AllAnnotationData, pageNumber:number){
+    let pageRefIDs:PageAnnotationData = []
     // console.log(AnnotationData)
     let PageAnnotationData = AnnotationData[pdf][pageNumber]
     if (!PageAnnotationData){
@@ -23,7 +24,7 @@ export async function getPageRefIDs(pdf:string,AnnotationData:any, pageNumber:nu
     return pageRefIDs
 }
 //初始化当前已渲染页面的浮窗
-export function initRefFloat(PdfID:string,RefDict:any,pdfIdDict:any,AnnotationData:any){
+export function initRefFloat(PdfID:string,RefDict:AllRefBlock,pdfIdDict:any,AnnotationData:AllAnnotationData){
 
         let CachedPage = getCachedPageViews(PdfID)
 
@@ -36,13 +37,61 @@ export function initRefFloat(PdfID:string,RefDict:any,pdfIdDict:any,AnnotationDa
         "\n将渲染页面：",renderPage)
         for (let renderPageNumber of renderPage){
             openPageRefFloatAndUpdateRefDict(PdfID, RefDict, pdfIdDict, AnnotationData, renderPageNumber)
-            console.log("clean page:", renderPageNumber, "\n now refDict :",RefDict[PdfID])
+            console.log("render page:", renderPageNumber, "\n now refDict :",RefDict[PdfID])
         }
 
 }
+// 更新当前页的标注浮窗
+export function updatePageRefFloat(PdfID:string, RefData:AllRefBlock, pdfIdDict:any, AnnotationData:AllAnnotationData){
+    let pdfName = pdfIdDict[PdfID]
+    let pageRefData:pageRefBlock = []
+    let  pageNumber:number = getModelsById(PdfID)[0].pdfObject.page
+    window.setEqual = setEqual
+    getPageRefIDs(pdfName, AnnotationData, pageNumber-1)
+    .then(pageRefIDs=>{
+        console.log("pageRefIDs", pageRefIDs)
+        //如果RefDict中pdf存在，对应页数存在，且ref存在，且ref未更新，则返回
+        //如果RefDict中pdf存在，对应页数存在，且ref存在，且ref更新，曾先销毁之前的浮窗再重新生成
+        // 其他情况直接生成新的浮窗
 
-// 更新当前页面的标注浮窗群
-export function updateRefFloatBufferFactory(PdfID:string,RefDict:any,pdfIdDict:any,AnnotationData:any){
+        for (let item of pageRefIDs){
+            // console.log(item)
+            if (RefData[PdfID] && RefData[PdfID][pageNumber] && isRefHasInRefData(RefData[PdfID][pageNumber],item)){
+
+                if (!isRefUpdate(RefData[PdfID][pageNumber],item)){
+                    let refBlock = (RefData[PdfID][pageNumber] as pageRefBlock).filter((x:refBlock)=>x.id === item.defId)[0]
+                    pageRefData.push(refBlock)
+                    continue;
+                }
+                let closeRefBlock = RefData[PdfID][pageNumber].filter((x:refBlock)=>x.id === item.defId)[0]
+                closeOneRefFloat(RefData[PdfID][pageNumber],closeRefBlock)
+            }
+            if (item.refIDs.length === 0) continue;
+            addFloatLayer({
+                ids: item.refIDs,
+                defIds: [item.defId],
+                x: window.innerWidth,
+                y: 2 * window.outerHeight + 100
+            })
+            let floatLayer = getArrayLast(window.siyuan.blockPanels)
+            let refBlockData:refBlock= {
+                id:item.defId,
+                getAnnotationCoord:getAnnotationCoordinates(item.defId,PdfID),
+                floatLayer:floatLayer,
+                refIDs:item.refIDs
+            }
+            initRefBlockCoord(refBlockData,PdfID)
+            setRefBlockPin(floatLayer)
+            setRefBlockAnnotation(floatLayer,PdfID)
+            pageRefData.push(refBlockData)
+        }
+        updateRefDict(RefData, PdfID, pageRefData, pageNumber)
+    })
+    
+}
+
+// 更新当前pdf的标注浮窗群
+export function updateRefFloatBufferFactory(PdfID:string,RefDict:AllRefBlock,pdfIdDict:any,AnnotationData:AllAnnotationData){
     // let pdfName = pdfIdDict[PdfID]
     return (ev:any)=>{
         let CachedPage = getCachedPageViews(PdfID)
@@ -63,7 +112,7 @@ export function updateRefFloatBufferFactory(PdfID:string,RefDict:any,pdfIdDict:a
     }
 }
 //打开对应页面的浮窗，并把打开的页面浮窗写入RefDict
-function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pdfIdDict:any, AnnotationData:any, pageNumber:number){
+function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:AllRefBlock, pdfIdDict:any, AnnotationData:AllAnnotationData, pageNumber:number){
     let pdfName = pdfIdDict[PdfID]
     let pageRefData = []
     getPageRefIDs(pdfName, AnnotationData, pageNumber-1)
@@ -78,10 +127,11 @@ function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pdfIdDict:a
                 y: 2 * window.outerHeight + 100
             })
             let floatLayer = getArrayLast(window.siyuan.blockPanels)
-            let refBlockData = {
+            let refBlockData:refBlock = {
                 id:item.defId,
                 getAnnotationCoord:getAnnotationCoordinates(item.defId,PdfID),
-                floatLayer:floatLayer
+                floatLayer:floatLayer,
+                refIDs:item.refIDs
             }
             initRefBlockCoord(refBlockData,PdfID)
             setRefBlockPin(floatLayer)
@@ -92,7 +142,7 @@ function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pdfIdDict:a
     updateRefDict(RefDict, PdfID, pageRefData, pageNumber)
 }
 
-function initRefBlockCoord(item:any,pdfID:string){
+function initRefBlockCoord(item:refBlock,pdfID:string){
     let floatLayerElement = item.floatLayer.element
 
     let page = document.querySelector(`div[data-id='${pdfID}'] .page`)
@@ -121,21 +171,21 @@ function getArrayLast(array:Array<any>){
     return array[length-1]
 }
 
-function updateRefDict(RefDict:any,pdfID:string,pageData:any, pageNumber:number){
+function updateRefDict(RefDict:AllRefBlock,pdfID:string,pageData:pageRefBlock, pageNumber:number){
     if (!RefDict[pdfID]){
         RefDict[pdfID] = {}
     }
     RefDict[pdfID][pageNumber] = pageData
 }
 
-function setRefBlockPin(floatLayer){
+function setRefBlockPin(floatLayer:floatLayer){
     floatLayer.element.setAttribute("data-pin","true")
 }
-function setRefBlockAnnotation(floatLayer,pdfID:string){
+function setRefBlockAnnotation(floatLayer:floatLayer,pdfID:string){
     floatLayer.element.setAttribute("annotation",pdfID)
 }
 
-export function updateRefBlockCoord(RefData:any, pdfId:string){
+export function updateRefBlockCoord(RefData:AllRefBlock, pdfId:string){
     let pdfRefData = RefData[pdfId]
     if (!pdfRefData)
         return
@@ -146,7 +196,7 @@ export function updateRefBlockCoord(RefData:any, pdfId:string){
             let floatLayerElement = item.floatLayer.element
             let rectDom = item.getAnnotationCoord()
             if (!floatLayerElement || !rectDom){
-                closePageRefFloat(pageRefData, item)
+                closeOneRefFloat(pageRefData, item)
                 return;
             }
             let clentY = rectDom['y']
@@ -163,18 +213,46 @@ let diff = (a:Array<number>|Set<number>,b:Array<number>|Set<number>)=>{
     let d = new Set([...b])
     return new Set([...c].filter(x => !d.has(x)))}
 
-function closePageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pageNumber:number){
+let diffWeak = (a:Array<any>|Set<any>,b:Array<any>|Set<any>)=>{
+    let c = new Set([...a])
+    let d = new Set([...b])
+    return new Set([...c].filter(x => !d.has(x)))}
+
+let setEqual = (a:Array<any>|Set<any>,b:Array<any>|Set<any>)=>{
+    let diff1 = diffWeak(a,b)
+    let diff2 = diffWeak(b,a)
+    return (diff1.size === 0 && diff2.size === 0)
+}
+
+function closePageRefFloatAndUpdateRefDict(PdfID:string, RefDict:AllRefBlock, pageNumber:number){
     let cleanPageRefData = RefDict[PdfID][pageNumber]
     for (let refFloat of cleanPageRefData){
-        closePageRefFloat(cleanPageRefData,refFloat)
+        closeOneRefFloat(cleanPageRefData,refFloat)
     }
     delete  RefDict[PdfID][pageNumber]
 }
-
-function closePageRefFloat(cleanPageRefData:Array<any>,refFloat:any){
-    let deleteIndex = cleanPageRefData.indexOf(refFloat)
-    if (refFloat.floatLayer.element && refFloat.floatLayer.destroy)
-        refFloat.floatLayer.destroy()
+// 传入打算关闭的页面的cleanPageRefData，和单一的refItem
+function closeOneRefFloat(cleanPageRefData:pageRefBlock,refItem:refBlock){
+    let deleteIndex = cleanPageRefData.indexOf(refItem)
+    if (refItem.floatLayer.element && refItem.floatLayer.destroy)
+        refItem.floatLayer.destroy()
     cleanPageRefData.splice(deleteIndex,1)
     return cleanPageRefData
+}
+//判断该ref是否已存在
+function isRefHasInRefData(pageRefData:pageRefBlock, refItem:oneAnnotationData){
+    let defId = refItem.defId
+    let searchRefData = pageRefData.filter(x=>x.id === defId)
+    return searchRefData.length === 1
+}
+
+//判断该ref是否更新了
+function isRefUpdate(pageRefData:pageRefBlock, refItem:oneAnnotationData){
+    let defId = refItem.defId
+    let searchRefData = pageRefData.filter(x=>x.id === defId)
+    if (searchRefData.length > 1){
+        console.error("unVaild RefData!",defId,pageRefData)
+    }
+    let searchRefIds = searchRefData[0]
+    return !setEqual(searchRefIds.refIDs,refItem.refIDs)
 }

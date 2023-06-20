@@ -11,7 +11,7 @@ import { getFileAnnotation } from "./api";
 import { getAnnotationCoordinates } from "./lib/annotation";
 import { initPagerenderedEvent, initPageScrollEvent, getCachedPageViews } from "./lib/pdfEvent";
 import { getPageRefIDs } from "./lib/refBlock";
-import { updateRefFloatBufferFactory, updateRefBlockCoord, initRefFloat } from "./lib/refBlock";
+import { updateRefFloatBufferFactory, updateRefBlockCoord, initRefFloat, updatePageRefFloat } from "./lib/refBlock";
 
 
 const STORAGE_NAME = "menu-config";
@@ -20,8 +20,8 @@ const DOCK_TYPE = "dock_tab";
 let currentPDF
 let currentPDFID
 let PDFIdToName = {}
-let AnnotationData = {}
-let RefData = {}
+let AnnotationData = {} as AllAnnotationData
+let RefData = {} as AllRefBlock
 let hasOpenPdf = new Set([])
 
 export default class PluginSample extends Plugin {
@@ -32,6 +32,7 @@ export default class PluginSample extends Plugin {
     async onload() {
         window.getAnnotationCoordinates = getAnnotationCoordinates
         window.refData = RefData
+        window.AnnotationData = AnnotationData
         window.updateRefBlockCoord = updateRefBlockCoord
 
         this.data[STORAGE_NAME] = {readonlyText: "Readonly"};
@@ -68,12 +69,16 @@ export default class PluginSample extends Plugin {
         let CachedPage = getCachedPageViews(currentPDFID)
         console.log(CachedPage)
         
+        
         getFileAnnotation(currentPDF).then(data=>{
             let Annotation = JSON.parse(data.data)
             console.log(Annotation)
             AnnotationData[currentPDF] = getPageAnnotation(Annotation)
             console.log(AnnotationData[currentPDF])
+            // if (hasOpenPdf.has(currentPDFID))
+            //     updatePageRefFloat(currentPDFID, RefData, PDFIdToName, AnnotationData)
             initPdfEvent()
+            updatePageRefFloat(currentPDFID, RefData, PDFIdToName, AnnotationData)
         })
     }
 }
