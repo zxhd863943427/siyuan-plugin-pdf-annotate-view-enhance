@@ -65,7 +65,7 @@ function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pdfIdDict:a
                 getAnnotationCoord:getAnnotationCoordinates(item.defId,PdfID),
                 floatLayer:floatLayer
             }
-            initRefBlockCoord(refBlockData)
+            initRefBlockCoord(refBlockData,PdfID)
             setRefBlockPin(floatLayer)
             setRefBlockAnnotation(floatLayer,PdfID)
             pageRefData.push(refBlockData)
@@ -74,14 +74,28 @@ function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pdfIdDict:a
     updateRefDict(RefDict, PdfID, pageRefData, pageNumber)
 }
 
-function initRefBlockCoord(item:any){
+function initRefBlockCoord(item:any,pdfID:string){
     let floatLayerElement = item.floatLayer.element
-    let rectDom = item.getAnnotationCoord()
-    let clentY = rectDom['y']
-    let width = rectDom['width']
-    if (width === 0)
+
+    let page = document.querySelector(`div[data-id='${pdfID}'] .page`)
+
+    let {left:pageLeft,width:pageWidth}= page.getBoundingClientRect()
+    let {left:annotationLeft, width:annotationWidth, y:clentY} = item.getAnnotationCoord()
+
+    let center = pageLeft + 0.5 * pageWidth
+
+    let left;
+    if (annotationLeft < center){
+        left = Math.max(0, pageLeft - 350)
+    }
+    else{
+        left = Math.min(window.innerWidth - 350, pageLeft + pageWidth)
+    }
+    
+    if (annotationWidth === 0)
         return
     floatLayerElement.style.top = `${clentY}px`
+    floatLayerElement.style.left = `${left}px`
 }
 
 function getArrayLast(array:Array<any>){
