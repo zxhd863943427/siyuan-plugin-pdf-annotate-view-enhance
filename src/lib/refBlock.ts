@@ -60,18 +60,29 @@ function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pdfIdDict:a
                 y: 2 * window.outerHeight + 100
             })
             let floatLayer = getArrayLast(window.siyuan.blockPanels)
-            setRefBlockPin(floatLayer)
-            setRefBlockAnnotation(floatLayer,PdfID)
-            pageRefData.push({
+            let refBlockData = {
                 id:item.defId,
                 getAnnotationCoord:getAnnotationCoordinates(item.defId,PdfID),
                 floatLayer:floatLayer
-            })
+            }
+            initRefBlockCoord(refBlockData)
+            setRefBlockPin(floatLayer)
+            setRefBlockAnnotation(floatLayer,PdfID)
+            pageRefData.push(refBlockData)
         }
     })
     updateRefDict(RefDict, PdfID, pageRefData, pageNumber)
 }
 
+function initRefBlockCoord(item:any){
+    let floatLayerElement = item.floatLayer.element
+    let rectDom = item.getAnnotationCoord()
+    let clentY = rectDom['y']
+    let width = rectDom['width']
+    if (width === 0)
+        return
+    floatLayerElement.style.top = `${clentY}px`
+}
 
 function getArrayLast(array:Array<any>){
     let length = array.length
@@ -103,7 +114,8 @@ export function updateRefBlockCoord(RefData:any, pdfId:string){
             let floatLayerElement = item.floatLayer.element
             let rectDom = item.getAnnotationCoord()
             if (!floatLayerElement || !rectDom){
-                closePageRefFloat(pageRefData, item.floatLayer)
+                closePageRefFloat(pageRefData, item)
+                return;
             }
             let clentY = rectDom['y']
             let width = rectDom['width']
@@ -129,7 +141,8 @@ function closePageRefFloatAndUpdateRefDict(PdfID:string, RefDict:any, pageNumber
 
 function closePageRefFloat(cleanPageRefData:Array<any>,refFloat:any){
     let deleteIndex = cleanPageRefData.indexOf(refFloat)
-    refFloat.floatLayer.destroy()
+    if (refFloat.floatLayer.element && refFloat.floatLayer.destroy)
+        refFloat.floatLayer.destroy()
     cleanPageRefData.splice(deleteIndex,1)
     return cleanPageRefData
 }
