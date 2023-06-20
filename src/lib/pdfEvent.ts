@@ -41,19 +41,21 @@ export function initPageScrollEvent(id:string,callback:Function){
 
 export function getCachedPageViews(id:string){
     let model = getModelsById(id)[0]
-    let pdfViewer = model.pdfObject.pdfViewer
+    // let pdfViewer = model.pdfObject.pdfViewer
     
-    let currentPageNumber = model.pdfObject.page
-    let pageCount = model.pdfObject.pagesCount
+    // let currentPageNumber = model.pdfObject.page
+    // let pageCount = model.pdfObject.pagesCount
     
-    let CachedPage = []
-    // let isPageCached = pdfViewer.isPageCached
+    // let CachedPage = []
+    // // let isPageCached = pdfViewer.isPageCached
     
-    let minPage = Math.max(1,currentPageNumber - 10)
-    let maxPage = Math.min(pageCount, currentPageNumber + 10)
-    for (let i = minPage; i <= maxPage; i++){
-        if (pdfViewer.isPageCached(i))
-            CachedPage.push(i)
-    }
+    // let minPage = Math.max(1,currentPageNumber - 10)
+    // let maxPage = Math.min(pageCount, currentPageNumber + 10)
+    // for (let i = minPage; i <= maxPage; i++){
+    //     if (pdfViewer.isPageCached(i))
+    //         CachedPage.push(i)
+    // }
+    let pdfElement = model.element
+    let CachedPage = Array.from(pdfElement.querySelectorAll(".page:has(.textLayer:not([hidden]))")).map((elem:HTMLElement)=>parseInt(elem.getAttribute("data-page-number")))
     return new Set(CachedPage)
 }
