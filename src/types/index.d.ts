@@ -64,3 +64,36 @@ type doOperation = {
     previousID: BlockId;
     retData: null;
 }
+
+
+type refBlock = {
+    id:string,
+    getAnnotationCoord:Function,
+    floatLayer:floatLayer,
+    refIDs:Array<string>
+}
+
+type floatLayer = {
+    app:any,
+    defIds:Array<defID>,
+    editors:Array<any>,
+    element:HTMLElement,
+    id:string,
+    isBacklink:any,
+    nodeIds:Array<refID>,
+    destroy:Function
+}
+
+type pageRefBlock = Array<refBlock>
+type OnePdfRefBlock = Map<number, pageRefBlock>
+type AllRefBlock = Map<string, OnePdfRefBlock>
+
+type oneAnnotationData = {
+    defId:string,
+    refIDs:Array<refID>
+}
+type PageAnnotationData = Array<oneAnnotationData>
+type OnePdfAnnotationData = Map<number,PageAnnotationData>
+type AllAnnotationData = Map<String,OnePdfAnnotationData>
+type refID = string
+type defID = string
