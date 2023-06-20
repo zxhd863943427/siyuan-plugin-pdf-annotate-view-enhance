@@ -66,6 +66,7 @@ export default class PluginSample extends Plugin {
         PDFIdToName[currentPDFID] = currentPDF
         console.log(currentPDFID)
         window.getCachedPageViews = getCachedPageViews
+        window.pdfId = currentPDFID
         let CachedPage = getCachedPageViews(currentPDFID)
         console.log(CachedPage)
         
@@ -127,7 +128,7 @@ function initPdfEvent(){
                                             RefData,
                                             PDFIdToName, 
                                             AnnotationData))
-    initPageScrollEvent(currentPDFID, throttle(()=>updateRefBlockCoord(RefData,currentPDFID),100))
+    initPageScrollEvent(currentPDFID, ()=>updateRefBlockCoord(RefData,currentPDFID))
 }
 
 function throttle(func:Function, wait:number) {

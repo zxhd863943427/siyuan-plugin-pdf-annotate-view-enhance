@@ -3,6 +3,7 @@ import { addFloatLayer } from "./utils"
 import { getAnnotationCoordinates } from "./annotation"
 import { getCachedPageViews, getModelsById } from "./pdfEvent"
 declare const index:any;
+const BlockRefWidth = 300
 // 获取标注的块引
 let getRefIDs = async (id) => (await fetchSyncPost("api/block/getRefIDsByFileAnnotationID",{id: id})).data.refIDs
 
@@ -138,6 +139,8 @@ function initRefBlockCoord(item:refBlock,pdfID:string){
     let floatLayerElement = item.floatLayer.element
 
     let page = document.querySelector(`div[data-id='${pdfID}'] .page`)
+    let pdfViewerContainer = getPdfViewer(pdfID)
+    let {left:ContainerLeft,width:ContainerWidth}=pdfViewerContainer.getBoundingClientRect()
 
     let {left:pageLeft,width:pageWidth}= page.getBoundingClientRect()
     let {left:annotationLeft, width:annotationWidth, y:clentY} = item.getAnnotationCoord()
@@ -146,10 +149,10 @@ function initRefBlockCoord(item:refBlock,pdfID:string){
 
     let left;
     if (annotationLeft < center){
-        left = Math.max(0, pageLeft - 350)
+        left = Math.max(ContainerLeft-BlockRefWidth*2/3, pageLeft - BlockRefWidth)
     }
     else{
-        left = Math.min(window.innerWidth - 350, pageLeft + pageWidth)
+        left = Math.min(ContainerWidth - BlockRefWidth*1/3, pageLeft + pageWidth)
     }
     
     if (annotationWidth === 0)
@@ -192,6 +195,7 @@ export function updateRefBlockCoord(RefData:AllRefBlock, pdfId:string){
     let keys = Object.keys(pdfRefData)
     let pdfViewerContainer = getPdfViewer(pdfId)
     let newScrollTop = pdfViewerContainer.scrollTop
+    let DomQueque = []
     for (let pageNumber of keys){
         let pageRefData = pdfRefData[pageNumber]
         for (let item of pageRefData){
@@ -205,13 +209,23 @@ export function updateRefBlockCoord(RefData:AllRefBlock, pdfId:string){
             // let width = rectDom['width']
             // if (width === 0)
             //     return
-            // floatLayerElement.style.top = `${clentY}px`
+            // // floatLayerElement.style.top = `${clentY}px`
+            // DomQueque.push({
+            //     newTop:clentY,
+            //     floatLayerElement:floatLayerElement
+            // })
             
             let scrollTop = parseFloat(floatLayerElement.getAttribute("scroll-top"))
             let initTop = parseFloat(floatLayerElement.getAttribute("init-top"))
             let newTop = initTop + (scrollTop - newScrollTop)
-            floatLayerElement.style.top = `${newTop}px`
+            DomQueque.push({
+                newTop:newTop,
+                floatLayerElement:floatLayerElement
+            })
         }
+    }
+    for (let {newTop,floatLayerElement} of DomQueque){
+        floatLayerElement.style.top = `${newTop}px`
     }
 }
 
