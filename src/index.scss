@@ -4,6 +4,7 @@
 [annotation]  {
     width: 350px;
     min-height: 0px;
+    opacity: 0.6;
 
     .protyle{
         min-height: 0px;
@@ -28,5 +29,15 @@
         .fn__space.fn__flex-1.resize__move{
             height: 24px;
         }
+        display: none;
+    }
+
+}
+
+[annotation]:hover{
+    opacity: 1;
+    z-index: 1000;
+    .block__icons.block__icons--menu{
+        display: flex;
     }
 }
