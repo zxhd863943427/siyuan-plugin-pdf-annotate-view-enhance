@@ -2,11 +2,27 @@
     border: 1px rgb(189, 119, 119) dashed;
 }
 [annotation]  {
-    width: 35em;
-    
-    .protyle-wysiwyg{
-    padding: 0px !important;
+    width: 350px;
+    min-height: 0px;
+
+    .protyle{
+        min-height: 0px;
+
+        .protyle-breadcrumb{
+            display: none;
+        }
+
+        .protyle-wysiwyg{
+            padding: 0px !important;
+
+            div[data-node-id]{   
+                padding: 0px;
+                margin: 0px 4px;
+                font-size: 0.7em;
+            }
+            }
     }
+    
     .block__icons.block__icons--menu{
         min-height: 24px !important;
         .fn__space.fn__flex-1.resize__move{
