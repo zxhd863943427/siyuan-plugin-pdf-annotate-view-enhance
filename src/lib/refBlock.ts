@@ -67,22 +67,8 @@ export function updatePageRefFloat(PdfID:string, RefData:AllRefBlock, pdfIdDict:
                 closeOneRefFloat(RefData[PdfID][pageNumber],closeRefBlock)
             }
             if (item.refIDs.length === 0) continue;
-            addFloatLayer({
-                ids: item.refIDs,
-                defIds: [item.defId],
-                x: window.innerWidth,
-                y: 2 * window.outerHeight + 100
-            })
-            let floatLayer = getArrayLast(window.siyuan.blockPanels)
-            let refBlockData:refBlock= {
-                id:item.defId,
-                getAnnotationCoord:getAnnotationCoordinates(item.defId,PdfID),
-                floatLayer:floatLayer,
-                refIDs:item.refIDs
-            }
-            initRefBlockCoord(refBlockData,PdfID)
-            setRefBlockPin(floatLayer)
-            setRefBlockAnnotation(floatLayer,PdfID)
+            
+            let refBlockData:refBlock= initFloat(item, PdfID);
             pageRefData.push(refBlockData)
         }
         updateRefDict(RefData, PdfID, pageRefData, pageNumber)
@@ -120,26 +106,31 @@ function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:AllRefBlock, pdf
         for (let item of pageRefIDs){
             if (item.refIDs.length === 0) continue;
 
-            addFloatLayer({
-                ids: item.refIDs,
-                defIds: [item.defId],
-                x: window.innerWidth,
-                y: 2 * window.outerHeight + 100
-            })
-            let floatLayer = getArrayLast(window.siyuan.blockPanels)
-            let refBlockData:refBlock = {
-                id:item.defId,
-                getAnnotationCoord:getAnnotationCoordinates(item.defId,PdfID),
-                floatLayer:floatLayer,
-                refIDs:item.refIDs
-            }
-            initRefBlockCoord(refBlockData,PdfID)
-            setRefBlockPin(floatLayer)
-            setRefBlockAnnotation(floatLayer,PdfID)
+            let refBlockData: refBlock = initFloat(item, PdfID);
             pageRefData.push(refBlockData)
         }
     })
     updateRefDict(RefDict, PdfID, pageRefData, pageNumber)
+}
+//添加并初始化化refBlock。
+function initFloat(item: oneAnnotationData, PdfID: string) {
+    addFloatLayer({
+        ids: item.refIDs,
+        defIds: [item.defId],
+        x: window.innerWidth,
+        y: 2 * window.outerHeight + 100
+    });
+    let floatLayer = getArrayLast(window.siyuan.blockPanels);
+    let refBlockData: refBlock = {
+        id: item.defId,
+        getAnnotationCoord: getAnnotationCoordinates(item.defId, PdfID),
+        floatLayer: floatLayer,
+        refIDs: item.refIDs
+    };
+    initRefBlockCoord(refBlockData, PdfID);
+    setRefBlockPin(floatLayer);
+    setRefBlockAnnotation(floatLayer, PdfID);
+    return refBlockData;
 }
 
 function initRefBlockCoord(item:refBlock,pdfID:string){
