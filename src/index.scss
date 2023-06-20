@@ -2,9 +2,11 @@
     border: 1px rgb(189, 119, 119) dashed;
 }
 [annotation]  {
-    width: 350px;
+    width: 300px;
     min-height: 0px;
     opacity: 0.6;
+    transform-origin: 0px 0px;
+    scale: var(--scale-factor);
 
     .protyle{
         min-height: 0px !important;
