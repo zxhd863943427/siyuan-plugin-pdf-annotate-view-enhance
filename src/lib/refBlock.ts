@@ -225,9 +225,9 @@ let setEqual = (a:Array<any>|Set<any>,b:Array<any>|Set<any>)=>{
 }
 
 function closePageRefFloatAndUpdateRefDict(PdfID:string, RefDict:AllRefBlock, pageNumber:number){
-    let cleanPageRefData = RefDict[PdfID][pageNumber]
+    let cleanPageRefData = [... RefDict[PdfID][pageNumber]]
     for (let refFloat of cleanPageRefData){
-        closeOneRefFloat(cleanPageRefData,refFloat)
+        closeOneRefFloat(RefDict[PdfID][pageNumber],refFloat)
     }
     delete  RefDict[PdfID][pageNumber]
 }
