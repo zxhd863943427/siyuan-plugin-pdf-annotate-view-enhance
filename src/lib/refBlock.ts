@@ -22,6 +22,24 @@ export async function getPageRefIDs(pdf:string,AnnotationData:any, pageNumber:nu
     }
     return pageRefIDs
 }
+//初始化当前已渲染页面的浮窗
+export function initRefFloat(PdfID:string,RefDict:any,pdfIdDict:any,AnnotationData:any){
+
+        let CachedPage = getCachedPageViews(PdfID)
+
+        // 获取已渲染的页面列表，如果 RefDict[PdfID] 不存在则说明未开始打开浮窗，返回空列表
+        let renderedPageRef = RefDict[PdfID] ? Object.keys(RefDict[PdfID]) : []
+
+        let renderPage = diff(CachedPage, renderedPageRef.map(a=>parseInt(a)))
+        console.log("已渲染的页面：",renderedPageRef,
+        "\n已存在的页面：",CachedPage,
+        "\n将渲染页面：",renderPage)
+        for (let renderPageNumber of renderPage){
+            openPageRefFloatAndUpdateRefDict(PdfID, RefDict, pdfIdDict, AnnotationData, renderPageNumber)
+            console.log("clean page:", renderPageNumber, "\n now refDict :",RefDict[PdfID])
+        }
+
+}
 
 // 更新当前页面的标注浮窗群
 export function updateRefFloatBufferFactory(PdfID:string,RefDict:any,pdfIdDict:any,AnnotationData:any){
