@@ -11,6 +11,8 @@ const args = minimist(process.argv.slice(2))
 const isWatch = args.watch || args.w || false
 const devDistDir = "./dev"
 const distDir = isWatch ? devDistDir : "./dist"
+let debugMode:boolean;
+debugMode = false
 
 console.log("isWatch=>", isWatch)
 console.log("distDir=>", distDir)
@@ -71,7 +73,7 @@ export default defineConfig({
         // 或是用来指定是应用哪种混淆器
         // boolean | 'terser' | 'esbuild'
         // 不压缩，用于调试
-        minify: !isWatch,
+        minify: debugMode === true ? false : "terser",
 
         lib: {
             // Could also be a dictionary or array of multiple entry points
@@ -123,5 +125,12 @@ export default defineConfig({
                 },
             },
         },
+        terserOptions: {
+            compress: {
+              // 生产环境时移除console
+              drop_console: true,
+              drop_debugger: true,
+            },
+          },
     }
 })
