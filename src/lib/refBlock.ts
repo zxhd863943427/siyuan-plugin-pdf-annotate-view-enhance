@@ -27,7 +27,10 @@ export async function getPageRefIDs(pdf:string,AnnotationData:AllAnnotationData,
 }
 //初始化当前已渲染页面的浮窗
 export function initRefFloat(PdfID:string,RefDict:AllRefBlock,pdfIdDict:any,AnnotationData:AllAnnotationData){
-
+    navigator.locks.request("addFloatLayer",async (lock)=>{
+        console.log("function is : initRefFloat -> openPageRefFloatAndUpdateRefDict")
+        console.log(`The lock name is: ${lock.name}`);
+        console.log(`The lock mode is: ${lock.mode}`);
         let CachedPage = getCachedPageViews(PdfID)
 
         // 获取已渲染的页面列表，如果 RefDict[PdfID] 不存在则说明未开始打开浮窗，返回空列表
@@ -38,19 +41,22 @@ export function initRefFloat(PdfID:string,RefDict:AllRefBlock,pdfIdDict:any,Anno
         "\n已存在的页面：",CachedPage,
         "\n将渲染页面：",renderPage)
         for (let renderPageNumber of renderPage){
-            openPageRefFloatAndUpdateRefDict(PdfID, RefDict, pdfIdDict, AnnotationData, renderPageNumber)
+            await openPageRefFloatAndUpdateRefDict(PdfID, RefDict, pdfIdDict, AnnotationData, renderPageNumber)
             console.log("render page:", renderPageNumber, "\n now refDict :",RefDict[PdfID])
         }
+    })
 
 }
 // 更新当前页的标注浮窗
-export function updatePageRefFloat(PdfID:string, RefData:AllRefBlock, pdfIdDict:any, AnnotationData:AllAnnotationData){
-    let pdfName = pdfIdDict[PdfID]
-    let pageRefData:pageRefBlock = []
-    let  pageNumber:number = getModelsById(PdfID)[0].pdfObject.page
-    window.setEqual = setEqual
-    getPageRefIDs(pdfName, AnnotationData, pageNumber-1)
-    .then(pageRefIDs=>{
+export async function updatePageRefFloat(PdfID:string, RefData:AllRefBlock, pdfIdDict:any, AnnotationData:AllAnnotationData){
+    navigator.locks.request("addFloatLayer",async (lock)=>{
+        console.log("function is : updatePageRefFloat")
+        console.log(`The lock name is: ${lock.name}`);
+        console.log(`The lock mode is: ${lock.mode}`);
+        let pdfName = pdfIdDict[PdfID]
+        let pageRefData:pageRefBlock = []
+        let  pageNumber:number = getModelsById(PdfID)[0].pdfObject.page
+        let pageRefIDs = await getPageRefIDs(pdfName, AnnotationData, pageNumber-1)
         console.log("pageRefIDs", pageRefIDs)
         //如果RefDict中pdf存在，对应页数存在，且ref存在，且ref未更新，则返回
         //如果RefDict中pdf存在，对应页数存在，且ref存在，且ref更新，曾先销毁之前的浮窗再重新生成
@@ -81,25 +87,31 @@ export function updatePageRefFloat(PdfID:string, RefData:AllRefBlock, pdfIdDict:
 // 更新当前pdf的标注浮窗群
 export function updateRefFloatBufferFactory(PdfID:string,RefDict:AllRefBlock,pdfIdDict:any,AnnotationData:AllAnnotationData){
     // let pdfName = pdfIdDict[PdfID]
+    console.log()
     return (ev:any)=>{
-        let CachedPage = getCachedPageViews(PdfID)
-        let pageNumber = ev.pageNumber
-        // 获取已渲染的页面列表，如果 RefDict[PdfID] 不存在则说明未开始打开浮窗，返回空列表
-        let renderedPageRef = RefDict[PdfID] ? Object.keys(RefDict[PdfID]) : []
-        let currentPageNoOpen = renderedPageRef.indexOf(String(pageNumber)) === -1
-        if (currentPageNoOpen)
-            openPageRefFloatAndUpdateRefDict(PdfID, RefDict, pdfIdDict, AnnotationData, pageNumber)
-        let cleanPage = diff(renderedPageRef.map(a=>parseInt(a)),CachedPage)
-        let trueCleanPage = Array.from(cleanPage).filter(x=>{return x<=pageNumber-bufferSize || x>=pageNumber+bufferSize})
-        console.log("已渲染的页面：",renderedPageRef,
-        "\n已存在的页面：",CachedPage,
-        "\n也许清理的页面：",cleanPage,
-        "\n当前页面：",pageNumber,
-        "\n将清理页面：",trueCleanPage)
-        for (let cleanPageNumber of trueCleanPage){
-            closePageRefFloatAndUpdateRefDict(PdfID, RefDict, cleanPageNumber)
-            console.log("clean page:",cleanPageNumber,"\n now refDict :",RefDict[PdfID])
-        }
+        navigator.locks.request("addFloatLayer",async (lock)=>{
+            console.log("function is : updateRefFloatBufferFactory -> openPageRefFloatAndUpdateRefDict")
+            console.log(`The lock name is: ${lock.name}`);
+            console.log(`The lock mode is: ${lock.mode}`);
+            let CachedPage = getCachedPageViews(PdfID)
+            let pageNumber = ev.pageNumber
+            // 获取已渲染的页面列表，如果 RefDict[PdfID] 不存在则说明未开始打开浮窗，返回空列表
+            let renderedPageRef = RefDict[PdfID] ? Object.keys(RefDict[PdfID]) : []
+            let currentPageNoOpen = renderedPageRef.indexOf(String(pageNumber)) === -1
+            if (currentPageNoOpen)
+                await openPageRefFloatAndUpdateRefDict(PdfID, RefDict, pdfIdDict, AnnotationData, pageNumber)
+            let cleanPage = diff(renderedPageRef.map(a=>parseInt(a)),CachedPage)
+            let trueCleanPage = Array.from(cleanPage).filter(x=>{return x<=pageNumber-bufferSize || x>=pageNumber+bufferSize})
+            console.log("已渲染的页面：",renderedPageRef,
+            "\n已存在的页面：",CachedPage,
+            "\n也许清理的页面：",cleanPage,
+            "\n当前页面：",pageNumber,
+            "\n将清理页面：",trueCleanPage)
+            for (let cleanPageNumber of trueCleanPage){
+                closePageRefFloatAndUpdateRefDict(PdfID, RefDict, cleanPageNumber)
+                console.log("clean page:",cleanPageNumber,"\n now refDict :",RefDict[PdfID])
+            }
+        })
     }
 }
 //打开对应页面的浮窗，并把打开的页面浮窗写入RefDict
@@ -313,7 +325,6 @@ export function destroyAndReinitRefBlockFactory(
         for (let cleanPageNumber of renderedPageRefNumber){
             closePageRefFloatAndUpdateRefDict(PdfID, RefDict, cleanPageNumber)
         }
-        // await initRefFloat(PdfID,RefDict,pdfIdDict,AnnotationData)
         console.log("add successful")
         hasOpenPdf.delete(PdfID)
         
@@ -327,7 +338,6 @@ export function destroyAndReinitRefBlockFactory(
         for (let cleanPageNumber of renderedPageRefNumber){
             closePageRefFloatAndUpdateRefDict(PdfID, RefDict, cleanPageNumber)
         }
-        // await initRefFloat(PdfID,RefDict,pdfIdDict,AnnotationData)
         console.log("add successful")
         hasOpenPdf.delete(PdfID)
     }
