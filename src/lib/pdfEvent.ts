@@ -32,6 +32,10 @@ export function initPagerenderedEvent(id:string,callback:Function){
     let pdfViewer = getPdfViewer(id)
     pdfViewer.eventBus.on("textlayerrendered",callback)
 }
+export function initscaleChangeEvent(id:string,callback:Function){
+    let pdfViewer = getPdfViewer(id)
+    pdfViewer.eventBus.on("scalechanging",callback)
+}
 
 export function initPageScrollEvent(id:string,callback:Function){
     let model = getModelsById(id)[0]

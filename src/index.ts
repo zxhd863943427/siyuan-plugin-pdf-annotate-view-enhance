@@ -9,9 +9,9 @@ import "@/index.scss";
 import { getCurrentPage, setAddFloatLayer,addFloatLayer } from "./lib/utils";
 import { getFileAnnotation } from "./api";
 import { getAnnotationCoordinates } from "./lib/annotation";
-import { initPagerenderedEvent, initPageScrollEvent, getCachedPageViews } from "./lib/pdfEvent";
+import { initPagerenderedEvent, initPageScrollEvent, getCachedPageViews, initscaleChangeEvent } from "./lib/pdfEvent";
 import { getPageRefIDs } from "./lib/refBlock";
-import { updateRefFloatBufferFactory, updateRefBlockCoord, initRefFloat, updatePageRefFloat } from "./lib/refBlock";
+import { updateRefFloatBufferFactory, updateRefBlockCoord, initRefFloat, updatePageRefFloat, destroyAndReinitRefBlockFactory } from "./lib/refBlock";
 
 
 const STORAGE_NAME = "menu-config";
@@ -129,6 +129,11 @@ function initPdfEvent(){
                                             PDFIdToName, 
                                             AnnotationData))
     initPageScrollEvent(currentPDFID, ()=>updateRefBlockCoord(RefData,currentPDFID))
+    initscaleChangeEvent(currentPDFID, destroyAndReinitRefBlockFactory(
+        currentPDFID, 
+        RefData,
+        hasOpenPdf
+    ))
 }
 
 function throttle(func:Function, wait:number) {

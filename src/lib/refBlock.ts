@@ -99,18 +99,19 @@ export function updateRefFloatBufferFactory(PdfID:string,RefDict:AllRefBlock,pdf
     }
 }
 //打开对应页面的浮窗，并把打开的页面浮窗写入RefDict
-function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:AllRefBlock, pdfIdDict:any, AnnotationData:AllAnnotationData, pageNumber:number){
+async function openPageRefFloatAndUpdateRefDict(PdfID:string, RefDict:AllRefBlock, pdfIdDict:any, AnnotationData:AllAnnotationData, pageNumber:number){
     let pdfName = pdfIdDict[PdfID]
     let pageRefData = []
-    getPageRefIDs(pdfName, AnnotationData, pageNumber-1)
-    .then(pageRefIDs=>{
-        for (let item of pageRefIDs){
-            if (item.refIDs.length === 0) continue;
+    let pageRefIDs = await getPageRefIDs(pdfName, AnnotationData, pageNumber-1)
+    // .then(pageRefIDs=>{
+        
+    // })
+    for (let item of pageRefIDs){
+        if (item.refIDs.length === 0) continue;
 
-            let refBlockData: refBlock = initFloat(item, PdfID);
-            pageRefData.push(refBlockData)
-        }
-    })
+        let refBlockData: refBlock = initFloat(item, PdfID);
+        pageRefData.push(refBlockData)
+    }
     updateRefDict(RefDict, PdfID, pageRefData, pageNumber)
 }
 //添加并初始化化refBlock。
@@ -128,16 +129,23 @@ function initFloat(item: oneAnnotationData, PdfID: string) {
         floatLayer: floatLayer,
         refIDs: item.refIDs
     };
-    initRefBlockCoord(refBlockData, PdfID);
+    initRefBlockStyle(refBlockData, PdfID);
     setRefBlockPin(floatLayer);
     setRefBlockAnnotation(floatLayer, PdfID);
     setRefBlockScrollTopAndTop(floatLayer, PdfID)
+    // setRefBlockScale(floatLayer, PdfID)
     return refBlockData;
 }
 
-function initRefBlockCoord(item:refBlock,pdfID:string){
-    let floatLayerElement = item.floatLayer.element
+function setRefBlockScale(floatLayer:floatLayer,pdfID:string){
+    let scale = getPdfViewerScale(pdfID)
+    let floatLayerElement = floatLayer.element
+    floatLayerElement.style.setProperty("--scale-factor",String(scale))
+}
 
+function initRefBlockStyle(item:refBlock,pdfID:string){
+    let floatLayerElement = item.floatLayer.element
+    let scale = Math.min(1.1, getPdfViewerScale(pdfID))
     let page = document.querySelector(`div[data-id='${pdfID}'] .page`)
     let pdfViewerContainer = getPdfViewer(pdfID)
     let {left:ContainerLeft,width:ContainerWidth}=pdfViewerContainer.getBoundingClientRect()
@@ -149,7 +157,7 @@ function initRefBlockCoord(item:refBlock,pdfID:string){
 
     let left;
     if (annotationLeft < center){
-        left = Math.max(ContainerLeft-BlockRefWidth*2/3, pageLeft - BlockRefWidth)
+        left = Math.max(ContainerLeft-BlockRefWidth*2/3, pageLeft - BlockRefWidth * scale)
     }
     else{
         left = Math.min(ContainerWidth - BlockRefWidth*1/3, pageLeft + pageWidth)
@@ -159,6 +167,7 @@ function initRefBlockCoord(item:refBlock,pdfID:string){
         return
     floatLayerElement.style.top = `${clentY}px`
     floatLayerElement.style.left = `${left}px`
+    floatLayerElement.style.setProperty("--scale-factor",String(scale))
 }
 
 function getArrayLast(array:Array<any>){
@@ -287,4 +296,61 @@ function getPdfViewer(id:string){
     }
     pdfViewerContainer = pdfViewerContainerDict[id]
     return pdfViewerContainer
+}
+// 销毁并重绘缩放后的浮窗。
+export function destroyAndReinitRefBlockFactory(
+    PdfID:string, 
+    RefDict:AllRefBlock, 
+    hasOpenPdf:Set<any> ){
+    let pdfViewer = getModelsById(PdfID)[0].pdfObject.pdfViewer
+    return (ev:any)=>{
+        let renderedPageRef = RefDict[PdfID] ? Object.keys(RefDict[PdfID]) : []
+        let renderedPageRefNumber = renderedPageRef.map(x=>parseInt(x))
+        for (let cleanPageNumber of renderedPageRefNumber){
+            closePageRefFloatAndUpdateRefDict(PdfID, RefDict, cleanPageNumber)
+        }
+        // await initRefFloat(PdfID,RefDict,pdfIdDict,AnnotationData)
+        console.log("add successful")
+        hasOpenPdf.delete(PdfID)
+        
+        pdfViewerScaleDict[PdfID] = parseFloat(ev.scale)
+        // pdfViewer.eventBus.on("textlayerrendered",destroyAndReinitRefBlock)
+    }
+    async function destroyAndReinitRefBlock(ev:any){
+        pdfViewer.eventBus.off("textlayerrendered",destroyAndReinitRefBlock)
+        let renderedPageRef = RefDict[PdfID] ? Object.keys(RefDict[PdfID]) : []
+        let renderedPageRefNumber = renderedPageRef.map(x=>parseInt(x))
+        for (let cleanPageNumber of renderedPageRefNumber){
+            closePageRefFloatAndUpdateRefDict(PdfID, RefDict, cleanPageNumber)
+        }
+        // await initRefFloat(PdfID,RefDict,pdfIdDict,AnnotationData)
+        console.log("add successful")
+        hasOpenPdf.delete(PdfID)
+    }
+}
+
+const pdfViewerScaleDict = {} as Map<string, number>
+function getPdfViewerScale(id:string):number{
+    let scale
+    if (!pdfViewerScaleDict[id]){
+        let viewer = document.querySelector(`[data-id="${id}"] #viewer`) as HTMLElement
+        scale = parseFloat(viewer.style.getPropertyValue("--scale-factor"))
+        pdfViewerScaleDict[id] = scale
+    }
+    scale = pdfViewerScaleDict[id]
+    return scale
+}
+
+function throttle(func:Function, wait:number) {
+    let timeout;
+    return function() {
+      let context = this;
+      let args = arguments;
+      if (!timeout) {
+        timeout = setTimeout(() => {
+          timeout = null;
+          func.apply(context, args)
+        }, wait)
+      }
+    }
 }
