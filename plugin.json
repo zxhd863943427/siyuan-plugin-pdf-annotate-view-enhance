@@ -7,12 +7,12 @@
   "backends": ["all"],
   "frontends": ["all"],
   "displayName": {
-    "en_US": "PDF",
-    "zh_CN": "PDF高级标注视图"
+    "en_US": "PDF Advanced Annotation View",
+    "zh_CN": "PDF PPT级标注视图"
   },
   "description": {
-    "en_US": "Possibly the strongest pdf annotation viewing view among note-taking software",
-    "zh_CN": "可能是笔记软件中最强的pdf标注查看视图"
+    "en_US": "Possibly the most stuck pdf annotation viewing view in note-taking software",
+    "zh_CN": "可能是笔记软件中最卡的pdf标注查看视图"
   },
   "readme": {
     "en_US": "README.md",
