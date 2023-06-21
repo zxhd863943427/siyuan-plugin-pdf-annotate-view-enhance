@@ -161,7 +161,7 @@ function setRefBlockScale(floatLayer:floatLayer,pdfID:string){
 
 function initRefBlockStyle(item:refBlock,pdfID:string){
     let floatLayerElement = item.floatLayer.element
-    let scale = Math.min(1.1, getPdfViewerScale(pdfID))
+    let scale = Math.min(1.2, getPdfViewerScale(pdfID))
     let page = document.querySelector(`div[data-id='${pdfID}'] .page`)
     let pdfViewerContainer = getPdfViewer(pdfID)
     let {left:ContainerLeft,width:ContainerWidth}=pdfViewerContainer.getBoundingClientRect()
@@ -173,12 +173,13 @@ function initRefBlockStyle(item:refBlock,pdfID:string){
 
     let left;
     if (annotationLeft < center){
-        left = Math.max(ContainerLeft-BlockRefWidth*2/3, pageLeft - BlockRefWidth * scale)
+        left = Math.max(ContainerLeft-(BlockRefWidth*4/5 * scale), pageLeft - BlockRefWidth * scale)
     }
     else{
-        left = Math.min(ContainerWidth - BlockRefWidth*1/3, pageLeft + pageWidth)
+        left = Math.min(ContainerLeft + ContainerWidth - (BlockRefWidth* 1/5 * scale), pageLeft + pageWidth)
     }
-    
+    console.log("left:ContainerLeft",ContainerLeft,"width:ContainerWidth",ContainerWidth,
+    "left:pageLeft",pageLeft,"width:pageWidth",pageWidth)
     if (annotationWidth === 0)
         return
     floatLayerElement.style.top = `${clentY}px`

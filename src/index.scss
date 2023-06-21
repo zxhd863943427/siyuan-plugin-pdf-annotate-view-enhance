@@ -1,13 +1,19 @@
 #helloPanel {
     border: 1px rgb(189, 119, 119) dashed;
 }
+.fn__flex-1.protyle{
+    z-index: 1;
+}
 [annotation]  {
     width: 300px;
     min-height: 0px;
-    opacity: 0.6;
+    opacity: 0.3;
     transform-origin: 0px 0px;
     scale: var(--scale-factor);
-
+    z-index: 0;
+    [data-type="pin"]{
+        display: none;
+    }
     .protyle{
         min-height: 0px !important;
 
@@ -42,4 +48,5 @@
     .block__icons.block__icons--menu{
         display: flex;
     }
+    scale:1.4;
 }
