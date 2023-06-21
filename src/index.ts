@@ -31,10 +31,10 @@ export default class PluginSample extends Plugin {
     private isMobile: boolean;
 
     async onload() {
-        window.getAnnotationCoordinates = getAnnotationCoordinates
-        window.refData = RefData
-        window.AnnotationData = AnnotationData
-        window.updateRefBlockCoord = updateRefBlockCoord
+        // window.getAnnotationCoordinates = getAnnotationCoordinates
+        // window.refData = RefData
+        // window.AnnotationData = AnnotationData
+        // window.updateRefBlockCoord = updateRefBlockCoord
 
         this.data[STORAGE_NAME] = {readonlyText: "Readonly"};
         setAddFloatLayer(this.addFloatLayer)
@@ -66,8 +66,8 @@ export default class PluginSample extends Plugin {
         currentPDFID = page.getAttribute("data-id")
         PDFIdToName[currentPDFID] = currentPDF
         console.log(currentPDFID)
-        window.getCachedPageViews = getCachedPageViews
-        window.pdfId = currentPDFID
+        // window.getCachedPageViews = getCachedPageViews
+        // window.pdfId = currentPDFID
         let CachedPage = getCachedPageViews(currentPDFID)
         console.log(CachedPage)
         
