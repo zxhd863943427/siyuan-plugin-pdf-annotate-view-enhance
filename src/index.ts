@@ -23,6 +23,7 @@ let PDFIdToName = {}
 let AnnotationData = {} as AllAnnotationData
 let RefData = {} as AllRefBlock
 let hasOpenPdf = new Set([])
+let hasRedrewPdf = new Set([])
 
 export default class PluginSample extends Plugin {
 
@@ -79,7 +80,9 @@ export default class PluginSample extends Plugin {
             // if (hasOpenPdf.has(currentPDFID))
             //     updatePageRefFloat(currentPDFID, RefData, PDFIdToName, AnnotationData)
             initPdfEvent()
+            redrewPdfEvent()
             updatePageRefFloat(currentPDFID, RefData, PDFIdToName, AnnotationData)
+            
         })
     }
 }
@@ -117,11 +120,6 @@ function initPdfEvent(){
     if (hasOpenPdf.has(currentPDFID))
         return
     hasOpenPdf.add(currentPDFID)
-    initRefFloat(
-        currentPDFID, 
-        RefData,
-        PDFIdToName, 
-        AnnotationData)
     initPagerenderedEvent(currentPDFID,eventBusLog)
     initPagerenderedEvent(currentPDFID,updateRefFloatBufferFactory(
                                             currentPDFID, 
@@ -132,8 +130,19 @@ function initPdfEvent(){
     initscaleChangeEvent(currentPDFID, destroyAndReinitRefBlockFactory(
         currentPDFID, 
         RefData,
-        hasOpenPdf
+        hasRedrewPdf
     ))
+}
+
+function redrewPdfEvent(){
+    if (hasRedrewPdf.has(currentPDFID))
+        return
+    hasRedrewPdf.add(currentPDFID)
+    initRefFloat(
+        currentPDFID, 
+        RefData,
+        PDFIdToName, 
+        AnnotationData)
 }
 
 function throttle(func:Function, wait:number) {
