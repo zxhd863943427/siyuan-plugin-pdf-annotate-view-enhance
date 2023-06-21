@@ -4,6 +4,7 @@ import { getAnnotationCoordinates } from "./annotation"
 import { getCachedPageViews, getModelsById } from "./pdfEvent"
 declare const index:any;
 const BlockRefWidth = 300
+const bufferSize = 15;
 // 获取标注的块引
 let getRefIDs = async (id) => (await fetchSyncPost("api/block/getRefIDsByFileAnnotationID",{id: id})).data.refIDs
 
@@ -89,10 +90,13 @@ export function updateRefFloatBufferFactory(PdfID:string,RefDict:AllRefBlock,pdf
         if (currentPageNoOpen)
             openPageRefFloatAndUpdateRefDict(PdfID, RefDict, pdfIdDict, AnnotationData, pageNumber)
         let cleanPage = diff(renderedPageRef.map(a=>parseInt(a)),CachedPage)
+        let trueCleanPage = Array.from(cleanPage).filter(x=>{return x<=pageNumber-bufferSize || x>=pageNumber+bufferSize})
         console.log("已渲染的页面：",renderedPageRef,
         "\n已存在的页面：",CachedPage,
-        "\n将清理页面：",cleanPage)
-        for (let cleanPageNumber of cleanPage){
+        "\n也许清理的页面：",cleanPage,
+        "\n当前页面：",pageNumber,
+        "\n将清理页面：",trueCleanPage)
+        for (let cleanPageNumber of trueCleanPage){
             closePageRefFloatAndUpdateRefDict(PdfID, RefDict, cleanPageNumber)
             console.log("clean page:",cleanPageNumber,"\n now refDict :",RefDict[PdfID])
         }
