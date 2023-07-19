@@ -2,7 +2,7 @@
   "name": "siyuan-plugin-pdf-annotate-view-enhance",
   "author": "zxhd863943427",
   "url": "https://github.com/zxhd863943427/siyuan-plugin-pdf-annotate-view-enhance",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "minAppVersion": "2.9.0",
   "backends": ["all"],
   "frontends": ["all"],
