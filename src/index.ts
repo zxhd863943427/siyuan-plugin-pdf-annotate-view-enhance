@@ -12,6 +12,7 @@ import { getAnnotationCoordinates } from "./lib/annotation";
 import { initPagerenderedEvent, initPageScrollEvent, getCachedPageViews, initscaleChangeEvent } from "./lib/pdfEvent";
 import { getPageRefIDs } from "./lib/refBlock";
 import { updateRefFloatBufferFactory, updateRefBlockCoord, initRefFloat, updatePageRefFloat, destroyAndReinitRefBlockFactory } from "./lib/refBlock";
+import { extendAnnotationColor } from "./lib/annotationColor";
 
 
 const STORAGE_NAME = "menu-config";
@@ -132,6 +133,7 @@ function initPdfEvent(){
         RefData,
         hasRedrewPdf
     ))
+    extendAnnotationColor(currentPDFID)
 }
 
 function redrewPdfEvent(){
